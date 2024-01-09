@@ -181,3 +181,46 @@ const login = async () => {
       console.log('login => error => ', JSON.stringify(err))
     }
   }
+
+
+ let listOfPermission = [];
+        if (Platform.OS === "ios") {
+            listOfPermission.push(PERMISSIONS.IOS.CAMERA)
+            listOfPermission.push(PERMISSIONS.IOS.PHOTO_LIBRARY)
+            listOfPermission.push(PERMISSIONS.IOS.MEDIA_LIBRARY)
+        } else if (Platform.OS === "android") {
+            listOfPermission.push(PERMISSIONS.ANDROID.CAMERA)
+            listOfPermission.push(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)
+            listOfPermission.push(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE)
+        }
+        checkMultiple(listOfPermission).then((response) => {
+            let RequiredPermission = []
+            listOfPermission.forEach((val, index) => {
+                if (response[val] !== 'granted') {
+                    RequiredPermission.push({
+                        title: val.split('.').pop(),
+                        permissionKey: val,
+                        status: response[val],
+                        index
+                    })
+                }
+            })
+          console.log(RequiredPermission)
+        })
+
+
+const singlePermission = useCallback(async (key, id) => {
+        dispatch(show())
+        const removePermission = response => {
+            dispatch(hide())
+            let _arry = [...statesObject.listOfPermission]
+            if (response === 'granted') {
+                _arry.splice(id, 1)
+            }
+            setStatesObject((prev) => ({ ...prev, listOfPermission: [..._arry] }))
+        }
+        if (Platform.constants['Release'] >= 13) {
+            return removePermission('granted')
+        }
+        request(key).then(removePermission)
+    }, [statesObject.listOfPermission])
